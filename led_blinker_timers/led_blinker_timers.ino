@@ -6,6 +6,10 @@
 #define LIGHT_COLOR mRGB(32, 0, 0)
 #define STOP_COLOR mRGB(255, 0, 0)
 #define NO_COLOR mRGB(0, 0, 0)
+#define LEFT_YELLOW 2
+#define RIGHT_BROWN 3
+#define STOP_BLUE 4
+#define LIGHTS_GREEN 5
 
 #define COLOR_DEBTH 3
 #include <microLED.h>   // подключаем библу
@@ -21,6 +25,10 @@ byte g_left_flag = 0;
 
 
 void setup() {
+  pinMode(LEFT_YELLOW, INPUT_PULLUP);
+  pinMode(RIGHT_BROWN, INPUT_PULLUP);
+  pinMode(STOP_BLUE, INPUT_PULLUP);
+  pinMode(LIGHTS_GREEN, INPUT_PULLUP);
   strip.setBrightness(128);
   Serial.begin(9600);
   Serial.println("started");
@@ -28,9 +36,27 @@ void setup() {
 
 void loop() {
   g_side_fill = LIGHT_COLOR;
+
+  
   strip.fill(0, NUMLEDS - 1, g_side_fill);
 
   scroller(0, 0);
+  if (digitalRead(STOP_BLUE))
+    stops();
+  if (digitalRead(LIGHTS_GREEN))
+    lights_all();
+  if (!digitalRead(STOP_BLUE) && !digitalRead(LIGHTS_GREEN))
+    off_all();
+  if (digitalRead(LEFT_YELLOW))  
+    scroller(1, 1);
+  if (digitalRead(RIGHT_BROWN)) 
+    scroller(2, 1);
+  if (digitalRead(LEFT_YELLOW) && digitalRead(RIGHT_BROWN))
+    scroller(3, 1);
+
+  
+    
+  //scroller(0, 0);
 
   counter_encrement();
 
