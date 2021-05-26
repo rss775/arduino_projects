@@ -1,5 +1,5 @@
 #define STRIP_PIN 13     // пин ленты
-#define NUMLEDS 28      // кол-во светодиодов vvv
+#define NUMLEDS 28      // кол-во светодиодов vvv.
 
 #define BLINK_DELAY 10
 #define BLINK_COLOR mRGB(128, 0, 0)
