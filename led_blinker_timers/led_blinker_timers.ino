@@ -4,7 +4,7 @@
 #define BLINK_DELAY 10
 #define BLINK_COLOR mRGB(128, 0, 0)
 #define LIGHT_COLOR mRGB(32, 0, 0)
-#define STOP_COLOR mRGB(255, 0, 0)
+#define STOP_COLOR mRGB(255, 255, 0)
 #define NO_COLOR mRGB(0, 0, 0)
 #define LEFT_YELLOW 2
 #define RIGHT_BROWN 3
@@ -35,25 +35,36 @@ void setup() {
 }
 
 void loop() {
-  g_side_fill = LIGHT_COLOR;
+  //g_side_fill = LIGHT_COLOR;
 
+  g_side_fill = NO_COLOR;
+  if (!digitalRead(LIGHTS_GREEN))
+    g_side_fill = LIGHT_COLOR;
   
+    
   strip.fill(0, NUMLEDS - 1, g_side_fill);
-
   scroller(0, 0);
-  if (digitalRead(STOP_BLUE))
-    stops();
-  if (digitalRead(LIGHTS_GREEN))
-    lights_all();
-  if (!digitalRead(STOP_BLUE) && !digitalRead(LIGHTS_GREEN))
-    off_all();
-  if (digitalRead(LEFT_YELLOW))  
+  
+  
+  if (!digitalRead(LEFT_YELLOW))  
     scroller(1, 1);
-  if (digitalRead(RIGHT_BROWN)) 
+  if (!digitalRead(RIGHT_BROWN)) 
     scroller(2, 1);
-  if (digitalRead(LEFT_YELLOW) && digitalRead(RIGHT_BROWN))
+  if (!digitalRead(LEFT_YELLOW) && !digitalRead(RIGHT_BROWN))
     scroller(3, 1);
 
+  if (!digitalRead(STOP_BLUE))
+  {
+    stops();
+    if (digitalRead(LEFT_YELLOW) && digitalRead(RIGHT_BROWN))
+      stops_all();
+  }
+
+    
+  
+  
+
+   
   
     
   //scroller(0, 0);
@@ -220,6 +231,13 @@ void lights_all() {
 void stops() {
   static byte counter = 0;
   for (int i = 8; i <= 20; i++)
+    strip.set(i, STOP_COLOR);
+  //Serial.println("stops");
+}
+
+void stops_all() {
+  static byte counter = 0;
+  for (int i = 0; i < NUMLEDS; i++)
     strip.set(i, STOP_COLOR);
   //Serial.println("stops");
 }
