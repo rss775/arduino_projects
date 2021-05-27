@@ -199,7 +199,7 @@ void left_blinker(int state_from_main)
       left_blinker_out_ended_flag = ENDED;
       left_blinker_out_permission_flag = 0;
     }
-    if ((left_blinker_ended_previous == 0) && (btn_left.state() == 0))
+    if ((left_blinker_out_permission_flag == 1) && (btn_left.state() == 0))
       left_blinker_ended_previous = left_blinker_out_permission_flag;
     
   }
