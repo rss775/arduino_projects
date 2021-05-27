@@ -29,6 +29,7 @@ int value = 0;
 microLED<NUMLEDS, STRIP_PIN, MLED_NO_CLOCK, LED_WS2818, ORDER_GRB, CLI_AVER> strip;
 
 mData g_side_fill = NO_COLOR;
+mData g_inner_fill = NO_COLOR;
 
 //byte g_counter_scroller = 0;
 byte g_counter_pos = 0;
@@ -98,13 +99,21 @@ void loop() {
 
   //if (btn1.click()) Serial.println("press 1");
 
-
+  strip.fill(0, NUMLEDS - 1, g_side_fill);
 
   g_side_fill = NO_COLOR;
   if (btn_lights.isHold())
     g_side_fill = LIGHT_COLOR;
+
+  g_inner_fill = NO_COLOR;
+  if (btn_lights.isHold())
+    g_inner_fill = LIGHT_COLOR;
+  if (btn_stop.isHold())
+    g_inner_fill = STOP_COLOR;
+
   
-  strip.fill(0, NUMLEDS - 1, g_side_fill);
+  
+  
   
   scroller(0, 0);
   
@@ -112,7 +121,6 @@ void loop() {
     left_blinker(1);
   if (btn_left.isRelease())  
   {
-    
     left_blinker(2);
   }
   left_blinker(0);
@@ -122,13 +130,13 @@ void loop() {
   if (btn_left.isPress() && btn_right.isPress())
     scroller(3, 1);
 
-  if (btn_stop.isHold())
-  {
-    stops();
-    if (!btn_left.isPress() && !btn_right.isPress())
-      stops_all();
-  }
-
+  fill_middle(g_inner_fill);
+//  if (btn_stop.isHold())
+//  {
+//    stops();
+//    if (!btn_left.isPress() && !btn_right.isPress())
+//      stops_all();
+//  }
     
   
   
@@ -186,22 +194,24 @@ void left_blinker(int state_from_main)
 
   if (left_blinker_out_ended_flag == NOT_ENDED)
   {
-    if (counter_ended && (btn_left.state() == 0))
+    if (btn_left.state() == 0)
     {
-      Serial.println("counter_ended && (btn_left.state())");
-      left_blinker_out_flag = 1;
-      left_blinker_out_ended_flag = ENDED;
+      if (counter_ended)
+      {
+        Serial.println("counter_ended && (btn_left.state())");
+        left_blinker_out_flag = 1;
+        left_blinker_out_ended_flag = ENDED;
+      }
+      if ((left_blinker_ended_previous == 1))
+      {
+        Serial.println("left_blinker_out_permission_flag == 0");
+        left_blinker_out_flag = 0;
+        left_blinker_out_ended_flag = ENDED;
+        left_blinker_out_permission_flag = 0;
+      }
+      if ((left_blinker_out_permission_flag == 1))
+        left_blinker_ended_previous = left_blinker_out_permission_flag;
     }
-    if ((left_blinker_ended_previous == 1) && (btn_left.state() == 0))
-    {
-      Serial.println("left_blinker_out_permission_flag == 0");
-      left_blinker_out_flag = 0;
-      left_blinker_out_ended_flag = ENDED;
-      left_blinker_out_permission_flag = 0;
-    }
-    if ((left_blinker_out_permission_flag == 1) && (btn_left.state() == 0))
-      left_blinker_ended_previous = left_blinker_out_permission_flag;
-    
   }
 }
 
@@ -325,9 +335,9 @@ void left_out(){
   this_pos = map(g_counter_pos, 0, 8, 8, 0); 
   this_value =  map(g_counter_value, 0, 7, 0, 7);
   strip.fill(0, 7, BLINK_COLOR);
-  strip.fill(this_pos, 7, g_side_fill);
+  strip.fill(this_pos, 7, g_inner_fill);
   if (this_pos != 8)
-    strip.set(this_pos, getBlend(this_value, 8, BLINK_COLOR, g_side_fill));
+    strip.set(this_pos, getBlend(this_value, 8, BLINK_COLOR, g_inner_fill));
   //text(this_pos, this_value, 'l');
 }
 
@@ -337,10 +347,10 @@ void right_out(){
   
   this_pos = map(g_counter_pos, 0, 8, 19, 27); 
   this_value =  map(g_counter_value, 0, 7, 0, 7);
-  strip.fill(20, 27, g_side_fill);
+  strip.fill(20, 27, g_inner_fill);
   strip.fill(this_pos, 27, BLINK_COLOR);
   if (this_pos != 19)
-    strip.set(this_pos, getBlend(this_value, 8, BLINK_COLOR, g_side_fill));
+    strip.set(this_pos, getBlend(this_value, 8, BLINK_COLOR, g_inner_fill));
   //text(this_pos, this_value, 'r');
 }
 
@@ -376,6 +386,13 @@ void stops() {
   static byte counter = 0;
   for (int i = 8; i <= 20; i++)
     strip.set(i, STOP_COLOR);
+  //Serial.println("stops");
+}
+
+void fill_middle(mData g_middle_fill) {
+  static byte counter = 0;
+  for (int i = 8; i <= 20; i++)
+    strip.set(i, g_middle_fill);
   //Serial.println("stops");
 }
 
