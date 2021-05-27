@@ -4,7 +4,7 @@
 #define BLINK_DELAY 10
 #define BLINK_COLOR mRGB(128, 0, 0)
 #define LIGHT_COLOR mRGB(32, 0, 0)
-#define STOP_COLOR mRGB(255, 255, 0)
+#define STOP_COLOR mRGB(128, 128, 0)
 #define NO_COLOR mRGB(0, 0, 0)
 #define LEFT_YELLOW 2
 #define RIGHT_BROWN 3
@@ -46,6 +46,13 @@ int left_blinker_ended_this_cycle = 0;
 
 
 int right_blinker_in_flag = 0;
+int right_blinker_in_ended_flag = 1;
+int right_blinker_out_flag = 0;
+int right_blinker_out_ended_flag = 1;
+int right_blinker_out_permission_flag = 0;
+int right_blinker_ended_previous = 0;
+int right_blinker_ended_this_cycle = 0;
+
 int both_blinker_in_flag = 0;
 int counter_ended = 0;
 
@@ -125,8 +132,15 @@ void loop() {
   }
   left_blinker(0);
   
-  if (btn_right.isPress()) 
-    scroller(2, 1);
+  if (btn_right.isPress())  
+    right_blinker(1);
+  if (btn_right.isRelease())  
+  {
+    right_blinker(2);
+  }
+  right_blinker(0);
+
+  
   if (btn_left.isPress() && btn_right.isPress())
     scroller(3, 1);
 
@@ -215,6 +229,63 @@ void left_blinker(int state_from_main)
   }
 }
 
+void right_blinker(int state_from_main)
+{
+  if (state_from_main == 1)
+  {
+    Serial.println("main1");
+    right_blinker_in_flag = 1;
+    right_blinker_out_flag = 0;
+    right_blinker_in_ended_flag = NOT_ENDED;
+    //right_blinker_out_ended_flag = ENDED;
+    right_blinker_out_permission_flag = 1;
+    reset_counter();
+  }
+ 
+  if (state_from_main == 2)
+  {
+    Serial.println("main2");
+    if (right_blinker_in_ended_flag == ENDED)
+    {
+      right_blinker_in_flag = 0;
+      Serial.println("right_blinker_in_ended_flag == ENDED");
+    }
+  }
+
+  if (right_blinker_in_ended_flag == NOT_ENDED)
+  {
+    if (counter_ended && !(btn_right.state()))
+    {
+      Serial.println("right_blinker_in_ended_flag == NOT_ENDED");
+      right_blinker_in_flag = 0;
+      right_blinker_out_flag = 1;
+      right_blinker_out_ended_flag = NOT_ENDED;
+    }
+  }
+
+  if (right_blinker_out_ended_flag == NOT_ENDED)
+  {
+    if (btn_right.state() == 0)
+    {
+      if (counter_ended)
+      {
+        Serial.println("counter_ended && (btn_right.state())");
+        right_blinker_out_flag = 1;
+        right_blinker_out_ended_flag = ENDED;
+      }
+      if ((right_blinker_ended_previous == 1))
+      {
+        Serial.println("right_blinker_out_permission_flag == 0");
+        right_blinker_out_flag = 0;
+        right_blinker_out_ended_flag = ENDED;
+        right_blinker_out_permission_flag = 0;
+      }
+      if ((right_blinker_out_permission_flag == 1))
+        right_blinker_ended_previous = right_blinker_out_permission_flag;
+    }
+  }
+}
+
 void counter_encrement(){
   g_counter_value++;
   counter_ended = 0;
@@ -279,19 +350,13 @@ void scroller(byte direction_nlrb, byte none_in_out){
     left_out();
   }
 
-  if (direction_nlrb == 2 && none_in_out == 1)
+  if (right_blinker_in_flag)
   {
     right_in();
   }
 
-  if (direction_nlrb == 2 && none_in_out == 2)
+  if (right_blinker_out_flag)
   {
-    right_out();
-  }
-
-  if (direction_nlrb == 3 && none_in_out == 2)
-  {
-    left_out();
     right_out();
   }
 
@@ -300,6 +365,14 @@ void scroller(byte direction_nlrb, byte none_in_out){
     left_in();
     right_in();
   }
+  
+  if (direction_nlrb == 3 && none_in_out == 2)
+  {
+    left_out();
+    right_out();
+  }
+
+  
   
 }
 
@@ -391,7 +464,7 @@ void stops() {
 
 void fill_middle(mData g_middle_fill) {
   static byte counter = 0;
-  for (int i = 8; i <= 20; i++)
+  for (int i = 8; i < 20; i++)
     strip.set(i, g_middle_fill);
   //Serial.println("stops");
 }
