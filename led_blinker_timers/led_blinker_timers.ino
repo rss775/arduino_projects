@@ -137,7 +137,7 @@ void updateArray(int newVal, byte *bytes) {
   }
   // пишем новое значение в последний элемент
   bytes[ARRAY_SIZE - 1] = newVal;
-  Serial.println("update array");
+//Serial.println("update array");
   printArray (bytes);
 }
 
@@ -154,17 +154,28 @@ void reset_counter()
 {
   g_counter_pos = 0;
   g_counter_value = 0;
-  Serial.println("reset");
+//Serial.println("reset");
 }
 
 void left_blinker()
 {
+  if (btn_left.isPress())
+  {
+    lb_value = 1;
+    
+    if (bytes_left_in[ARRAY_SIZE - 1] != 1)
+      reset_counter();
+
+    updateArray(lb_value, bytes_left_in);
+    left_in();
+  }
   if (counter_ended)
   {
     if (btn_left.isHold())
     {
       lb_value = 1;
       updateArray(lb_value, bytes_left_in);
+      
     }
     else
     {
@@ -182,7 +193,15 @@ void left_blinker()
 void left_blinker_loop()
 {
 
-  
+  if ((bytes_left_in[ARRAY_SIZE - 1] == 1))
+  {
+    left_in_ended = 0;
+    left_out_ended = 0;
+    if (counter_ended)
+    {
+      left_out_ended = 1;
+    }
+  }
 
 
   if (counter_ended)
@@ -202,15 +221,7 @@ void left_blinker_loop()
   if (bytes_left_in[ARRAY_SIZE - 1] == 2 && bytes_left_in[ARRAY_SIZE - 2] == 2)
     bytes_left_in[ARRAY_SIZE - 1] = 3;
 
-  if ((bytes_left_in[ARRAY_SIZE - 1] == 1))
-  {
-    left_in_ended = 0;
-    left_out_ended = 0;
-    if (counter_ended)
-    {
-      left_out_ended = 1;
-    }
-  }
+
 
   if ((bytes_left_in[ARRAY_SIZE - 1]) != 1)
   {
@@ -228,7 +239,7 @@ void left_blinker_loop()
     //text('i');
   }
   //text('n');
-  Serial.println(!left_in_ended);
+//Serial.println(!left_in_ended);
   
   if ((left_in_ended) && bytes_left_in[ARRAY_SIZE - 1] == 2)
   {
@@ -242,7 +253,7 @@ void left_blinker_loop()
     if (counter_ended)
     {
       left_out_printed = 1;
-      Serial.println("out");
+    //Serial.println("out");
     }
   }
 
@@ -310,7 +321,7 @@ void left_in() {
   strip.fill(this_pos, 7, BLINK_COLOR);
   if (this_pos != 8)
     strip.set(this_pos, getBlend(this_value, 8, BLINK_COLOR, g_side_fill));
-  text(this_pos, this_value, 'i');
+  //text(this_pos, this_value, 'i');
 }
 
 void right_in() {
@@ -337,7 +348,7 @@ void left_out() {
   strip.fill(this_pos, 7, g_inner_fill);
   if (this_pos != 8)
     strip.set(this_pos, getBlend(this_value, 8, BLINK_COLOR, g_inner_fill));
-  text(this_pos, this_value, 'o');
+  //text(this_pos, this_value, 'o');
 }
 
 void right_out() {
