@@ -2,9 +2,9 @@
 #define NUMLEDS 28      // кол-во светодиодов vvv.
 
 #define BLINK_DELAY 10
-#define BLINK_COLOR mRGB(128, 0, 0)
-#define LIGHT_COLOR mRGB(32, 0, 0)
-#define STOP_COLOR mRGB(128, 128, 0)
+#define BLINK_COLOR mRGB(64, 0, 0)  //заменить
+#define LIGHT_COLOR mRGB(32, 0, 0)  //заменить
+#define STOP_COLOR mRGB(128, 128, 0)  //заменить
 #define NO_COLOR mRGB(0, 0, 0)
 #define LEFT_YELLOW 2
 #define RIGHT_BROWN 3
@@ -45,14 +45,14 @@ int state_left_button = 0;
 int left_in_ended = 1;
 int left_out_ended = 1;
 int left_out_printed = 1;
-int lb_value = 6;
+int left_blink_value = 6;
 int left_done = 1;
 
 int state_right_button = 0;
 int right_in_ended = 1;
 int right_out_ended = 1;
 int right_out_printed = 1;
-int rb_value = 6;
+int right_blink_value = 6;
 int right_done = 1;
 
 int counter_ended = 0;
@@ -118,19 +118,27 @@ void loop() {
   strip.fill(0, NUMLEDS - 1, g_side_fill);
 
   g_side_fill = NO_COLOR;
-  if (btn_lights.isHold())
+  if (btn_lights.state())
     g_side_fill = LIGHT_COLOR;
 
   g_inner_fill = NO_COLOR;
-  if (btn_lights.isHold())
+  if (btn_lights.state())
     g_inner_fill = LIGHT_COLOR;
-  if (btn_stop.isHold())
+  if (btn_stop.state())
   {
     g_inner_fill = STOP_COLOR;
+  }
+
+  if (btn_stop.state())
+  {
     if (left_done == 1)
       fill_left(STOP_COLOR);
+    if (g_counter_pos == 8 && g_counter_value == 7)
+      fill_left(g_side_fill);
     if (right_done == 1)
       fill_right(STOP_COLOR);
+    if (g_counter_pos == 8 && g_counter_value == 7)
+      fill_right(g_side_fill);
   }
 
 
@@ -143,6 +151,8 @@ void loop() {
   fill_middle(g_inner_fill);
   counter_encrement();
 
+  
+  //text(9, 9, 'd');
   strip.show();
   delay(BLINK_DELAY);
 }
@@ -155,7 +165,7 @@ void updateArray(int newVal, byte *bytes) {
   // пишем новое значение в последний элемент
   bytes[ARRAY_SIZE - 1] = newVal;
 //Serial.println("update array");
-  printArray (bytes);
+  //printArray (bytes);
 }
 
 void printArray(byte *bytes) {
@@ -178,29 +188,29 @@ void left_blinker()
 {
   if (btn_left.isPress())
   {
-    lb_value = 1;
+    left_blink_value = 1;
     
     if (bytes_left_in[ARRAY_SIZE - 1] != 1)
       reset_counter();
 
-    updateArray(lb_value, bytes_left_in);
+    updateArray(left_blink_value, bytes_left_in);
     left_in();
   }
   if (counter_ended)
   {
     if (btn_left.isHold())
     {
-      lb_value = 1;
-      updateArray(lb_value, bytes_left_in);
+      left_blink_value = 1;
+      updateArray(left_blink_value, bytes_left_in);
       
     }
     else
     {
-      lb_value = 2;
+      left_blink_value = 2;
       if ((bytes_left_in[ARRAY_SIZE - 1] == 0))
-        lb_value = 0;
+        left_blink_value = 0;
     }
-    updateArray(lb_value, bytes_left_in);
+    updateArray(left_blink_value, bytes_left_in);
   }
 }
 
@@ -242,8 +252,8 @@ void left_blinker_loop()
       left_in_ended = 1;
     }
   }
-
-
+  if (bytes_left_in[ARRAY_SIZE - 1] == 0)
+    fill_left(g_inner_fill);
   if (!left_in_ended)
   {
     //Serial.println("in");
@@ -255,13 +265,16 @@ void left_blinker_loop()
   
   if ((left_in_ended) && bytes_left_in[ARRAY_SIZE - 1] == 2)
   {
+    
     if (g_counter_pos == 8 && g_counter_value == 7)
     {
       g_counter_pos = 0;
       g_counter_value = 1;
+      //fill_left(STOP_COLOR);
     }
-    //text('o');
     left_out();
+    //text('o');
+    
     if (counter_ended)
     {
       left_out_printed = 1;
@@ -275,29 +288,29 @@ void right_blinker()
 {
   if (btn_right.isPress())
   {
-    rb_value = 1;
+    right_blink_value = 1;
     
     if (bytes_right_in[ARRAY_SIZE - 1] != 1)
       reset_counter();
 
-    updateArray(rb_value, bytes_right_in);
+    updateArray(right_blink_value, bytes_right_in);
     right_in();
   }
   if (counter_ended)
   {
     if (btn_right.isHold())
     {
-      rb_value = 1;
-      updateArray(rb_value, bytes_right_in);
+      right_blink_value = 1;
+      updateArray(right_blink_value, bytes_right_in);
       
     }
     else
     {
-      rb_value = 2;
+      right_blink_value = 2;
       if ((bytes_right_in[ARRAY_SIZE - 1] == 0))
-        rb_value = 0;
+        right_blink_value = 0;
     }
-    updateArray(rb_value, bytes_right_in);
+    updateArray(right_blink_value, bytes_right_in);
   }
 }
 
@@ -339,8 +352,8 @@ void right_blinker_loop()
       right_in_ended = 1;
     }
   }
-
-
+  if (bytes_right_in[ARRAY_SIZE - 1] == 0)
+    fill_right(g_inner_fill);
   if (!right_in_ended)
   {
     //Serial.println("in");
@@ -352,13 +365,16 @@ void right_blinker_loop()
   
   if ((right_in_ended) && bytes_right_in[ARRAY_SIZE - 1] == 2)
   {
+    
     if (g_counter_pos == 8 && g_counter_value == 7)
     {
       g_counter_pos = 0;
       g_counter_value = 1;
+      //fill_right(STOP_COLOR);
     }
-    //text('o');
     right_out();
+    //text('o');
+    
     if (counter_ended)
     {
       right_out_printed = 1;
@@ -432,6 +448,20 @@ void left_in() {
   left_done = 0;
 }
 
+void left_out() {
+  int this_pos;
+  int this_value;
+
+  this_pos = map(g_counter_pos, 0, 8, 8, 0);
+  this_value =  map(g_counter_value, 0, 7, 0, 7);
+  strip.fill(0, 7, BLINK_COLOR);
+  strip.fill(this_pos, 7, g_inner_fill);
+  if (this_pos != 8)
+    strip.set(this_pos, getBlend(this_value, 8, BLINK_COLOR, g_inner_fill));
+  //text(this_pos, this_value, 'o');
+  left_done = 0;
+}
+
 void right_in() {
   int this_pos;
   int this_value;
@@ -447,19 +477,7 @@ void right_in() {
   
 }
 
-void left_out() {
-  int this_pos;
-  int this_value;
 
-  this_pos = map(g_counter_pos, 0, 8, 8, 0);
-  this_value =  map(g_counter_value, 0, 7, 0, 7);
-  strip.fill(0, 7, BLINK_COLOR);
-  strip.fill(this_pos, 7, g_inner_fill);
-  if (this_pos != 8)
-    strip.set(this_pos, getBlend(this_value, 8, BLINK_COLOR, g_inner_fill));
-  //text(this_pos, this_value, 'o');
-  left_done = 0;
-}
 
 void right_out() {
   int this_pos;
