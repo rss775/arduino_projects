@@ -90,15 +90,16 @@ void setup() {
   //  pinMode(LIGHTS_GREEN, INPUT_PULLUP);
 
   strip.setBrightness(128);
-  //Serial.begin(9600);
-  //Serial.println("started");
-  if (btn_left.isHold())
+//  Serial.begin(9600);
+//  Serial.println("started");
+  //delay(10);
+  if (btn_left.state())
     for (byte i = 0; i < ARRAY_SIZE; i++)
       updateArray(1, bytes_left_in);
   else
     for (byte i = 0; i < ARRAY_SIZE; i++)
       updateArray(2, bytes_left_in);
-  if (btn_right.isHold())
+  if (btn_right.state())
     for (byte i = 0; i < ARRAY_SIZE; i++)
       updateArray(1, bytes_right_in);
   else
@@ -112,7 +113,7 @@ bool flag = false;
 uint32_t btnTimer = 0;
 
 void loop() {
-  //Serial.println("Loop");
+  Serial.println("Loop");
   left_done = 1;
   right_done = 1;
 
@@ -168,8 +169,8 @@ void updateArray(int newVal, byte *bytes) {
   bytes[ARRAY_SIZE - 1] = newVal;
 
   
-  //Serial.println("update array");
-  //printArray (bytes);
+  Serial.println("update array");
+//  printArray (bytes);
 }
 
 void printArray(byte *bytes) {
