@@ -90,8 +90,8 @@ void setup() {
   //  pinMode(LIGHTS_GREEN, INPUT_PULLUP);
 
   strip.setBrightness(128);
-  Serial.begin(9600);
-  Serial.println("started");
+  //Serial.begin(9600);
+  //Serial.println("started");
 
   for (byte i = 11; i < ARRAY_SIZE; i++)
     updateArray(2, bytes_left_in);
@@ -151,7 +151,7 @@ void loop() {
   fill_middle(g_inner_fill);
   counter_encrement();
 
-  
+
   //text(9, 9, 'd');
   strip.show();
   delay(BLINK_DELAY);
@@ -164,7 +164,7 @@ void updateArray(int newVal, byte *bytes) {
   }
   // пишем новое значение в последний элемент
   bytes[ARRAY_SIZE - 1] = newVal;
-//Serial.println("update array");
+  //Serial.println("update array");
   //printArray (bytes);
 }
 
@@ -181,7 +181,7 @@ void reset_counter()
 {
   g_counter_pos = 0;
   g_counter_value = 0;
-//Serial.println("reset");
+  //Serial.println("reset");
 }
 
 void left_blinker()
@@ -189,7 +189,7 @@ void left_blinker()
   if (btn_left.isPress())
   {
     left_blink_value = 1;
-    
+
     if (bytes_left_in[ARRAY_SIZE - 1] != 1)
       reset_counter();
 
@@ -202,7 +202,7 @@ void left_blinker()
     {
       left_blink_value = 1;
       updateArray(left_blink_value, bytes_left_in);
-      
+
     }
     else
     {
@@ -262,10 +262,10 @@ void left_blinker_loop()
   }
   //text('n');
   //Serial.println(!left_in_ended);
-  
+
   if ((left_in_ended) && bytes_left_in[ARRAY_SIZE - 1] == 2)
   {
-    
+
     if (g_counter_pos == 8 && g_counter_value == 7)
     {
       g_counter_pos = 0;
@@ -274,11 +274,11 @@ void left_blinker_loop()
     }
     left_out();
     //text('o');
-    
+
     if (counter_ended)
     {
       left_out_printed = 1;
-    //Serial.println("out");
+      //Serial.println("out");
     }
   }
 
@@ -289,7 +289,7 @@ void right_blinker()
   if (btn_right.isPress())
   {
     right_blink_value = 1;
-    
+
     if (bytes_right_in[ARRAY_SIZE - 1] != 1)
       reset_counter();
 
@@ -302,7 +302,7 @@ void right_blinker()
     {
       right_blink_value = 1;
       updateArray(right_blink_value, bytes_right_in);
-      
+
     }
     else
     {
@@ -362,10 +362,10 @@ void right_blinker_loop()
   }
   //text('n');
   //Serial.println(!right_in_ended);
-  
+
   if ((right_in_ended) && bytes_right_in[ARRAY_SIZE - 1] == 2)
   {
-    
+
     if (g_counter_pos == 8 && g_counter_value == 7)
     {
       g_counter_pos = 0;
@@ -374,11 +374,11 @@ void right_blinker_loop()
     }
     right_out();
     //text('o');
-    
+
     if (counter_ended)
     {
       right_out_printed = 1;
-    //Serial.println("out");
+      //Serial.println("out");
     }
   }
 
@@ -474,7 +474,7 @@ void right_in() {
   if (this_pos != 19)
     strip.set(this_pos, getBlend(this_value, 8, BLINK_COLOR, g_side_fill));
   right_done = 0;
-  
+
 }
 
 
