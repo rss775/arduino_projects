@@ -2,7 +2,7 @@
 #define NUMLEDS 28      // кол-во светодиодов vvv.
 
 #define BLINK_DELAY 10
-#define BLINK_COLOR mRGB(64, 0, 64)  //заменить
+#define BLINK_COLOR mRGB(64, 0, 0)  //заменить
 #define LIGHT_COLOR mRGB(32, 0, 0)  //заменить
 #define STOP_COLOR mRGB(128, 128, 0)  //заменить
 #define NO_COLOR mRGB(0, 0, 0)
@@ -15,12 +15,10 @@
 #define NOT_ENDED 0
 
 #define COLOR_DEBTH 3
-#define ARRAY_SIZE 8
 
 #include "GyverButton.h"
-#include "TimerOne.h"
 
-
+#define ARRAY_SIZE 8
 byte bytes_left_in[ARRAY_SIZE];
 byte bytes_right_in[ARRAY_SIZE];
 
@@ -47,40 +45,44 @@ int state_left_button = 0;
 int left_in_ended = 1;
 int left_out_ended = 1;
 int left_out_printed = 1;
-int left_blink_value = 6;
+int left_blink_value = 0;
 int left_done = 1;
 
 int state_right_button = 0;
 int right_in_ended = 1;
 int right_out_ended = 1;
 int right_out_printed = 1;
-int right_blink_value = 6;
+int right_blink_value = 0;
 int right_done = 1;
-
-int start_flag = 1;
 
 int counter_ended = 0;
 
-bool flag = false;
-uint32_t btnTimer = 0;
-
 void setup() {
-  Timer1.initialize(10000);           // установка таймера на каждые 10000 микросекунд (== 10 мс)
-  Timer1.attachInterrupt(timerIsr); 
-  
-  btn_left.setDebounce(10);
-  btn_right.setDebounce(10);
-  btn_stop.setDebounce(10);
-  btn_lights.setDebounce(10);
 
+  btn_left.setDebounce(90);
+  btn_right.setDebounce(90);
+  btn_stop.setDebounce(90);
+  btn_lights.setDebounce(90);
 
+  btn_left.setTimeout(300);
+  btn_right.setTimeout(300);
+  btn_stop.setTimeout(300);
+  btn_lights.setTimeout(300);
 
+  btn_left.setType(HIGH_PULL);
+  btn_right.setType(HIGH_PULL);
+  btn_stop.setType(HIGH_PULL);
+  btn_lights.setType(HIGH_PULL);
 
+  btn_left.setDirection(NORM_OPEN);
+  btn_right.setDirection(NORM_OPEN);
+  btn_stop.setDirection(NORM_OPEN);
+  btn_lights.setDirection(NORM_OPEN);
 
-//  btn_left.setTickMode(AUTO);
-//  btn_right.setTickMode(AUTO);
-//  btn_stop.setTickMode(AUTO);
-//  btn_lights.setTickMode(AUTO);
+  btn_left.setTickMode(AUTO);
+  btn_right.setTickMode(AUTO);
+  btn_stop.setTickMode(AUTO);
+  btn_lights.setTickMode(AUTO);
 
   //  pinMode(LEFT_YELLOW, INPUT_PULLUP);
   //  pinMode(RIGHT_BROWN, INPUT_PULLUP);
@@ -88,80 +90,59 @@ void setup() {
   //  pinMode(LIGHTS_GREEN, INPUT_PULLUP);
 
   strip.setBrightness(128);
-  Serial.begin(9600);
-  Serial.println("started");
-
-  for (byte i = 0; i < ARRAY_SIZE; i++)
-    updateArray(2, bytes_left_in);
-
-  for (byte i = 0; i < ARRAY_SIZE; i++)
-    updateArray(2, bytes_right_in);
+  //Serial.begin(9600);
+  //Serial.println("started");
+  if (btn_left.isHold())
+    for (byte i = 0; i < ARRAY_SIZE; i++)
+      updateArray(1, bytes_left_in);
+  else
+    for (byte i = 0; i < ARRAY_SIZE; i++)
+      updateArray(2, bytes_left_in);
+  if (btn_right.isHold())
+    for (byte i = 0; i < ARRAY_SIZE; i++)
+      updateArray(1, bytes_right_in);
+  else
+    for (byte i = 0; i < ARRAY_SIZE; i++)
+      updateArray(2, bytes_right_in);
 
 
 }
 
-
-void timerIsr() {
-  btn_left.tick();  // опрашиваем в прерывании, чтобы поймать нажатие в любом случае
-  btn_right.tick();
-  btn_lights.tick();
-  btn_stop.tick();
-}
+bool flag = false;
+uint32_t btnTimer = 0;
 
 void loop() {
-  
-  if (btn_left.isPress())
-  {
-    if (start_flag == 1)
-    {
-      //updateArray(1, bytes_left_in);
-      reset_counter();
-    }
-    if (left_in_ended)
-      reset_counter();
-    start_flag = 0;
-  }
-  if (start_flag == 1 && btn_left.state())
-  {
-      //updateArray(1, bytes_left_in);
-      reset_counter();
-  }
-//  if (btn_left.state())
-//  {
-//    updateArray(1, bytes_left_in);
-//  }
-
-
-
-  
-
-
+  //Serial.println("Loop");
   left_done = 1;
   right_done = 1;
+
+
+  strip.fill(0, NUMLEDS - 1, g_side_fill);
 
   g_side_fill = NO_COLOR;
   if (btn_lights.state())
     g_side_fill = LIGHT_COLOR;
 
-  strip.fill(0, NUMLEDS - 1, g_side_fill);
-
   g_inner_fill = NO_COLOR;
   if (btn_lights.state())
     g_inner_fill = LIGHT_COLOR;
   if (btn_stop.state())
-    g_inner_fill = STOP_COLOR;
-
-  if (btn_stop.state())
   {
-    if (left_done == 1)
-      fill_left(STOP_COLOR);
-    if (g_counter_pos == 8 && g_counter_value == 7)
-      fill_left(g_side_fill);
-    if (right_done == 1)
-      fill_right(STOP_COLOR);
-    if (g_counter_pos == 8 && g_counter_value == 7)
-      fill_right(g_side_fill);
+    g_inner_fill = STOP_COLOR;
   }
+
+//  if (btn_stop.state())
+//  {
+//    if (left_done == 1)
+//      fill_left(STOP_COLOR);
+//    if (g_counter_pos == 8 && g_counter_value == 7)
+//      fill_left(g_side_fill);
+//    if (right_done == 1)
+//      fill_right(STOP_COLOR);
+//    if (g_counter_pos == 8 && g_counter_value == 7)
+//      fill_right(g_side_fill);
+//  }
+
 
   left_blinker();
   left_blinker_loop();
@@ -172,10 +153,10 @@ void loop() {
   fill_middle(g_inner_fill);
   counter_encrement();
 
+
   //text(9, 9, 'd');
   strip.show();
   delay(BLINK_DELAY);
-
 }
 
 void updateArray(int newVal, byte *bytes) {
@@ -185,8 +166,10 @@ void updateArray(int newVal, byte *bytes) {
   }
   // пишем новое значение в последний элемент
   bytes[ARRAY_SIZE - 1] = newVal;
+
+  
   //Serial.println("update array");
-  printArray (bytes);
+  //printArray (bytes);
 }
 
 void printArray(byte *bytes) {
@@ -209,11 +192,9 @@ void left_blinker()
 {
   if (btn_left.isPress())
   {
-    left_blink_value = 1;
-
     if (bytes_left_in[ARRAY_SIZE - 1] != 1)
       reset_counter();
-
+    left_blink_value = 1;
     updateArray(left_blink_value, bytes_left_in);
     left_in();
   }
@@ -223,7 +204,6 @@ void left_blinker()
     {
       left_blink_value = 1;
       updateArray(left_blink_value, bytes_left_in);
-
     }
     else
     {
@@ -273,7 +253,7 @@ void left_blinker_loop()
       left_in_ended = 1;
     }
   }
-  if ((bytes_left_in[ARRAY_SIZE - 1] == 0) )
+  if (bytes_left_in[ARRAY_SIZE - 1] == 0)
     fill_left(g_inner_fill);
   if (!left_in_ended)
   {
@@ -373,7 +353,7 @@ void right_blinker_loop()
       right_in_ended = 1;
     }
   }
-  if ((bytes_right_in[ARRAY_SIZE - 1] == 0) )
+  if (bytes_right_in[ARRAY_SIZE - 1] == 0)
     fill_right(g_inner_fill);
   if (!right_in_ended)
   {
@@ -523,20 +503,14 @@ void fill_middle(mData g_middle_fill) {
 
 void fill_left(mData g_middle_fill) {
   static byte counter = 0;
-  //if (start_flag == 0)
-  {
-    for (int i = 0; i < 8; i++)
-      strip.set(i, g_middle_fill);
-    //Serial.println("fill left");
-  }
+  for (int i = 0; i < 8; i++)
+    strip.set(i, g_middle_fill);
+  //Serial.println("stops");
 }
 
 void fill_right(mData g_middle_fill) {
   static byte counter = 0;
-  if (start_flag == 0)
-  {
-    for (int i = 20; i < NUMLEDS; i++)
-      strip.set(i, g_middle_fill);
-    //Serial.println("stops");
-  }
+  for (int i = 20; i < NUMLEDS; i++)
+    strip.set(i, g_middle_fill);
+  //Serial.println("stops");
 }

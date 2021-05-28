@@ -106,6 +106,11 @@ bool flag = false;
 uint32_t btnTimer = 0;
 
 void loop() {
+  //g_side_fill = LIGHT_COLOR;
+
+  //if (btn1.click()) Serial.println("press 1");
+
+  //text_variables(1);
 
   left_done = 1;
   right_done = 1;
