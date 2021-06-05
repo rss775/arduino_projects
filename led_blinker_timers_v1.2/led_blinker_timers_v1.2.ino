@@ -1,15 +1,19 @@
 #define STRIP_PIN 13     // пин ленты
 #define NUMLEDS 28      // кол-во светодиодов vvv.
+#include "GyverTimer.h"
+
+GTimer myTimer(MS);
 
 #define BLINK_DELAY 10
-#define BLINK_COLOR mRGB(64, 0, 0)  //заменить
-#define LIGHT_COLOR mRGB(32, 0, 0)  //заменить
-#define STOP_COLOR mRGB(128, 128, 0)  //заменить
+#define BLINK_COLOR mRGB(255, 0, 0)  //заменить
+#define LIGHT_COLOR mRGB(64, 0, 0)  //заменить
+#define STOP_COLOR mRGB(255, 0, 0)  //заменить
 #define NO_COLOR mRGB(0, 0, 0)
-#define LEFT_YELLOW 2
-#define RIGHT_BROWN 3
-#define STOP_BLUE 4
-#define LIGHTS_GREEN 5
+#define BRIGHT_LED 100
+#define LEFT_YELLOW A0//4 
+#define RIGHT_GREEN A1//3 
+#define STOP_RED A3//2 
+//#define RIGHT_NONE_WIRE 5
 
 #define ENDED 1
 #define NOT_ENDED 0
@@ -23,9 +27,9 @@ byte bytes_left_in[ARRAY_SIZE];
 byte bytes_right_in[ARRAY_SIZE];
 
 GButton btn_left(LEFT_YELLOW);
-GButton btn_right(RIGHT_BROWN);
-GButton btn_stop(STOP_BLUE);
-GButton btn_lights(LIGHTS_GREEN);
+GButton btn_right(RIGHT_GREEN);
+GButton btn_stop(STOP_RED);
+//GButton btn_lights(RIGHT_NONE_WIRE);
 //int value = 0;
 
 
@@ -62,36 +66,36 @@ void setup() {
   btn_left.setDebounce(90);
   btn_right.setDebounce(90);
   btn_stop.setDebounce(90);
-  btn_lights.setDebounce(90);
+
 
   btn_left.setTimeout(300);
   btn_right.setTimeout(300);
   btn_stop.setTimeout(300);
-  btn_lights.setTimeout(300);
 
-  btn_left.setType(HIGH_PULL);
-  btn_right.setType(HIGH_PULL);
-  btn_stop.setType(HIGH_PULL);
-  btn_lights.setType(HIGH_PULL);
 
-  btn_left.setDirection(NORM_OPEN);
-  btn_right.setDirection(NORM_OPEN);
-  btn_stop.setDirection(NORM_OPEN);
-  btn_lights.setDirection(NORM_OPEN);
+  btn_left.setType(LOW_PULL);
+  btn_right.setType(LOW_PULL);
+  btn_stop.setType(LOW_PULL);
+  
 
-  btn_left.setTickMode(AUTO);
-  btn_right.setTickMode(AUTO);
-  btn_stop.setTickMode(AUTO);
-  btn_lights.setTickMode(AUTO);
+
+//  btn_left.setDirection(NORM_OPEN);
+//  btn_right.setDirection(NORM_OPEN);
+//  btn_stop.setDirection(NORM_OPEN);
+//
+//
+//  btn_left.setTickMode(AUTO);
+//  btn_right.setTickMode(AUTO);
+//  btn_stop.setTickMode(AUTO);
+
 
   //  pinMode(LEFT_YELLOW, INPUT_PULLUP);
-  //  pinMode(RIGHT_BROWN, INPUT_PULLUP);
-  //  pinMode(STOP_BLUE, INPUT_PULLUP);
-  //  pinMode(LIGHTS_GREEN, INPUT_PULLUP);
+  //  pinMode(RIGHT_GREEN, INPUT_PULLUP);
+  //  pinMode(STOP_RED, INPUT_PULLUP);
+  //  pinMode(RIGHT_NONE_WIRE, INPUT_PULLUP);
 
-  strip.setBrightness(128);
-//  Serial.begin(9600);
-//  Serial.println("started");
+  strip.setBrightness(BRIGHT_LED);
+
   //delay(10);
   if (btn_left.state())
     for (byte i = 0; i < ARRAY_SIZE; i++)
@@ -106,14 +110,25 @@ void setup() {
     for (byte i = 0; i < ARRAY_SIZE; i++)
       updateArray(2, bytes_right_in);
 
-
+  Serial.begin(9600);
+//  Serial.println("started");
+  myTimer.setInterval(1000);
 }
 
 bool flag = false;
 uint32_t btnTimer = 0;
 
 void loop() {
-  Serial.println("Loop");
+  int analog0 = analogRead(LEFT_YELLOW);
+  int analog1 = analogRead(RIGHT_GREEN);
+  int analog2 = analogRead(STOP_RED);
+
+  btn_left.tick(analog0 > 250);
+  btn_right.tick(analog1 > 250);
+  btn_stop.tick(analog2 > 250);
+
+
+  //Serial.println("Loop");
   left_done = 1;
   right_done = 1;
 
@@ -121,15 +136,17 @@ void loop() {
   strip.fill(0, NUMLEDS - 1, g_side_fill);
 
   g_side_fill = NO_COLOR;
-  if (btn_lights.state())
+  if (true)                                   // (btn_lights.state())
     g_side_fill = LIGHT_COLOR;
 
-  g_inner_fill = NO_COLOR;
-  if (btn_lights.state())
-    g_inner_fill = LIGHT_COLOR;
+  g_inner_fill = LIGHT_COLOR;
   if (btn_stop.state())
-  {
     g_inner_fill = STOP_COLOR;
+  if (myTimer.isReady()){
+    Serial.println("a read");
+    Serial.println(analog0);
+    Serial.println(analog1);
+    Serial.println(analog2);
   }
 
 //  if (btn_stop.state())
